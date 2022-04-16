@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.media.ThumbnailUtils
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -18,6 +19,10 @@ import com.example.junglelookalike.databinding.ActivityMainBinding
 import com.example.junglelookalike.ml.Model
 import org.tensorflow.lite.DataType
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
+import java.io.IOException
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import kotlin.math.min
 
 class MainActivity : AppCompatActivity() {
     val mainViewModel : MainViewModel by viewModels()
@@ -33,6 +38,8 @@ class MainActivity : AppCompatActivity() {
     //카메라와 갤러리를 호출하는 플래그
     val FLAG_REQ_CAMERA = 101
     val FLAG_REA_STORAGE = 102
+
+    val imageSize = 224
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,7 +59,7 @@ class MainActivity : AppCompatActivity() {
 //
 //        // Creates inputs for reference.
 //        val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
-////        inputFeature0.loadBuffer(byteBuffer)
+//        inputFeature0.loadBuffer(byteBuffer)
 //
 //        // Runs model inference and gets result.
 //        val outputs = model.process(inputFeature0)
@@ -130,13 +137,95 @@ class MainActivity : AppCompatActivity() {
     //startActivityForResult 을 사용한 다음 돌아오는 결과값을 해당 메소드로 호출합니다.
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if(resultCode == Activity.RESULT_OK){
+        if(resultCode == RESULT_OK){
             when(requestCode){
                 FLAG_REQ_CAMERA ->{
                     if(data?.extras?.get("data") != null){
                         //카메라로 방금 촬영한 이미지를 미리 만들어 놓은 이미지뷰로 전달 합니다.
-                        val bitmap = data?.extras?.get("data") as Bitmap
-                        binding.ivPre.setImageBitmap(bitmap)
+                        var image = data?.extras?.get("data") as Bitmap
+
+                        var dimension = min(image.width, image.height)
+
+                        //원하는 크기로 비트맵 생성
+                        image = ThumbnailUtils.extractThumbnail(image, dimension, dimension)
+                        binding.ivPre.setImageBitmap(image)
+
+                        // 비트맵 크기 조정
+                        image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false)
+
+
+
+                        try {
+                            val buffer = ByteBuffer.allocateDirect(4 * imageSize * imageSize * 3)
+                            buffer.order(ByteOrder.nativeOrder())
+                            image.copyPixelsToBuffer(buffer)
+
+
+                            val model = Model.newInstance(this)
+                            // Creates inputs for reference.
+                            val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
+                            inputFeature0.loadBuffer(buffer)
+
+                            // Runs model inference and gets result.
+                            val outputs = model.process(inputFeature0)
+                            val outputFeature0 = outputs.outputFeature0AsTensorBuffer
+
+
+                            val confidences = outputFeature0.floatArray
+
+
+                            var s = String.format("%s : %.1f%%\n", "ddd", confidences[0] * 100)
+                            binding.testId.text = s
+
+
+
+                            Log.d("ttest", "과연 = " + confidences.size)
+                            Log.d("ttest", "과연 = " + confidences.get(0).isNaN())
+
+
+
+
+
+
+                            // Releases model resources if no longer used.
+                            model.close()
+
+
+
+//                            // Creates inputs for reference.
+//                            val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
+//                            val byteBuffer = ByteBuffer.allocateDirect(4 * imageSize * imageSize * 3)
+//                            byteBuffer.order(ByteOrder.nativeOrder())
+
+
+//                            val intValue = IntArray(imageSize * imageSize)
+//                            image.getPixels(intValue, 0, image.width, 0, 0 , image.width, image.height)
+//                            var pixel = 0
+//
+//                            for(i in 0..imageSize) {
+//                                for(j in 0..imageSize) {
+//                                    var v = intValue[pixel++] // RGB
+//                                    byteBuffer.putFloat((1.f / 255.f))
+//                                }
+//                            }
+//
+//
+//                            inputFeature0.loadBuffer(byteBuffer)
+//
+//                            // Runs model inference and gets result.
+//                            val outputs = model.process(inputFeature0)
+//                            val outputFeature0 = outputs.outputFeature0AsTensorBuffer
+//
+//                            // Releases model resources if no longer used.
+//                            model.close()
+
+
+
+
+                        } catch (e : IOException) {
+                            Log.d("ttest" , "IOException !!! = $e" )
+                        }
+
                     }
                 }
             }
