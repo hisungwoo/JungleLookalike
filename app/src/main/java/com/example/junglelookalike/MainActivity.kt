@@ -18,11 +18,13 @@ import androidx.core.content.ContextCompat
 import com.example.junglelookalike.databinding.ActivityMainBinding
 import com.example.junglelookalike.ml.Model
 import org.tensorflow.lite.DataType
+import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.min
+import kotlin.math.roundToLong
 
 class MainActivity : AppCompatActivity() {
     val mainViewModel : MainViewModel by viewModels()
@@ -76,7 +78,6 @@ class MainActivity : AppCompatActivity() {
         //카메라 버튼 클릭
         binding.mainUploadImg.setOnClickListener {
             //카메라 호출 메소드
-            Log.d("ttest", "업로드")
             openCamera()
         }
     }
@@ -143,16 +144,14 @@ class MainActivity : AppCompatActivity() {
                     if(data?.extras?.get("data") != null){
                         //카메라로 방금 촬영한 이미지를 미리 만들어 놓은 이미지뷰로 전달 합니다.
                         var image = data?.extras?.get("data") as Bitmap
-
                         var dimension = min(image.width, image.height)
 
                         //원하는 크기로 비트맵 생성
-                        image = ThumbnailUtils.extractThumbnail(image, dimension, dimension)
-                        binding.ivPre.setImageBitmap(image)
+//                        image = ThumbnailUtils.extractThumbnail(image, dimension, dimension)
+                        binding.mainUploadImg.setImageBitmap(image)
 
                         // 비트맵 크기 조정
                         image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false)
-
 
 
                         try {
@@ -160,31 +159,49 @@ class MainActivity : AppCompatActivity() {
                             buffer.order(ByteOrder.nativeOrder())
                             image.copyPixelsToBuffer(buffer)
 
-
                             val model = Model.newInstance(this)
+
+                            val tfImage = TensorImage.fromBitmap(image)
+                            val feature = TensorBuffer.createFrom(tfImage.tensorBuffer, DataType.FLOAT32)
+                            feature.buffer.order(ByteOrder.nativeOrder())
+
                             // Creates inputs for reference.
-                            val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 224, 224, 3), DataType.FLOAT32)
-                            inputFeature0.loadBuffer(buffer)
+                            val inputFeature0 =
+                                TensorBuffer.createFixedSize(
+                                    intArrayOf(1, tfImage.width, tfImage.height, 3),
+                                    DataType.FLOAT32
+                                )
 
-                            // Runs model inference and gets result.
+                            inputFeature0.loadBuffer(feature.buffer)
+
+
                             val outputs = model.process(inputFeature0)
-                            val outputFeature0 = outputs.outputFeature0AsTensorBuffer
+                            val output = outputs.outputFeature0AsTensorBuffer
+                            val confidences = output.floatArray
+                            var maximum = 0F
+                            var matching = 0F
+                            for (item in confidences.indices) {
+                                if (confidences[item] > maximum) {
+                                    matching = item.toFloat()
+                                    maximum = confidences[item]
+                                }
+                            }
+                            val probability = (maximum * 100.00).roundToLong()
+                            val result = matching.toInt()
 
+                            model.close()
 
-                            val confidences = outputFeature0.floatArray
+                            val resultArray = arrayOf("여우","하마")
+                            Log.d("ttest", "result = $result")
+                            val resultTitle = resultArray[result]
+                            Log.d("ttest", "resultTitle = $resultTitle")
 
-
-                            var s = String.format("%s : %.1f%%\n", "ddd", confidences[0] * 100)
+                            val s = String.format("%s : %.1f%%\n", resultTitle, confidences[0] * 100)
+                            val s2 = String.format("%s : %.1f%%\n", "ddd", confidences[1] * 100)
                             binding.testId.text = s
+                            binding.testId2.text = "나는 밀림에서 $resultTitle 입니다!!"
 
-
-
-                            Log.d("ttest", "과연 = " + confidences.size)
-                            Log.d("ttest", "과연 = " + confidences.get(0).isNaN())
-
-
-
-
+                            Log.d("ttest", "matching : $resultTitle - probability: $probability %")
 
 
                             // Releases model resources if no longer used.

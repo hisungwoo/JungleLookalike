@@ -18,7 +18,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         />
 
-    <ImageButton
+    <ImageView
         android:id="@+id/main_upload_img"
         android:layout_marginTop="30dp"
         android:layout_width="250dp"
@@ -29,31 +29,34 @@
         />
 
     <TextView
+        android:id="@+id/guide"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:text="얼굴 정면 사진을 촬영하거나 업로드 해주세요"
         app:layout_constraintTop_toBottomOf="@+id/main_upload_img"
         app:layout_constraintStart_toStartOf="@+id/main_upload_img"
         app:layout_constraintEnd_toEndOf="@+id/main_upload_img"
         />
 
-    <ImageView
-        android:id="@+id/iv_pre"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintVertical_bias="0.8"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@tools:sample/avatars" />
 
     <TextView
         android:id="@+id/test_id"
+        android:layout_marginTop="30dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@+id/iv_pre"
+        android:textSize="20sp"
+        tools:text="여우 : 99.9%"
+        app:layout_constraintTop_toBottomOf="@+id/guide"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/test_id2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:text="나는 밀림에서 여우입니다!"
+        app:layout_constraintTop_toBottomOf="@+id/test_id"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
