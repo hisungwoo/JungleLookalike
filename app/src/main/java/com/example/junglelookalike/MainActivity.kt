@@ -161,66 +161,6 @@ class MainActivity : AppCompatActivity() {
                         image = Bitmap.createScaledBitmap(image, imageSize, imageSize, false)
 
                         mainViewModel.submit(image, this)
-
-//                        try {
-//                            val buffer = ByteBuffer.allocateDirect(4 * imageSize * imageSize * 3)
-//                            buffer.order(ByteOrder.nativeOrder())
-//                            image.copyPixelsToBuffer(buffer)
-//
-//                            val model = Model.newInstance(this)
-//
-//                            val tfImage = TensorImage.fromBitmap(image)
-//                            val feature = TensorBuffer.createFrom(tfImage.tensorBuffer, DataType.FLOAT32)
-//                            feature.buffer.order(ByteOrder.nativeOrder())
-//
-//                            // Creates inputs for reference.
-//                            val inputFeature0 =
-//                                TensorBuffer.createFixedSize(
-//                                    intArrayOf(1, tfImage.width, tfImage.height, 3),
-//                                    DataType.FLOAT32
-//                                )
-//
-//                            inputFeature0.loadBuffer(feature.buffer)
-//
-//
-//                            val outputs = model.process(inputFeature0)
-//                            val output = outputs.outputFeature0AsTensorBuffer
-//                            val confidences = output.floatArray
-//                            var maximum = 0F
-//                            var matching = 0F
-//                            for (item in confidences.indices) {
-//                                if (confidences[item] > maximum) {
-//                                    matching = item.toFloat()
-//                                    maximum = confidences[item]
-//                                }
-//                            }
-//                            val probability = (maximum * 100.00).roundToLong()
-//                            val result = matching.toInt()
-//
-//                            model.close()
-//
-//                            val resultArray = arrayOf("여우","하마")
-//                            Log.d("ttest", "result = $result")
-//                            val resultTitle = resultArray[result]
-//                            Log.d("ttest", "resultTitle = $resultTitle")
-//
-//                            val s = String.format("%s : %.1f%%\n", resultTitle, confidences[0] * 100)
-//                            val s2 = String.format("%s : %.1f%%\n", "ddd", confidences[1] * 100)
-//                            binding.testId.text = s
-//                            binding.testId2.text = "나는 밀림에서 $resultTitle 입니다!!"
-//
-//                            Log.d("ttest", "matching : $resultTitle - probability: $probability %")
-//
-//
-//                            // Releases model resources if no longer used.
-//                            model.close()
-//
-//
-//
-//                        } catch (e : IOException) {
-//                            Log.d("ttest" , "IOException !!! = $e" )
-//                        }
-
                     }
                 }
             }
