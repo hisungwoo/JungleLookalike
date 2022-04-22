@@ -1,31 +1,24 @@
 package com.example.junglelookalike
 
 import android.Manifest
-import android.app.Activity
+import android.R
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.media.ThumbnailUtils
 import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
 import com.example.junglelookalike.databinding.ActivityMainBinding
-import com.example.junglelookalike.ml.Model
-import org.tensorflow.lite.DataType
-import org.tensorflow.lite.support.image.TensorImage
-import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
-import java.io.IOException
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import kotlin.math.min
-import kotlin.math.roundToLong
+
 
 class MainActivity : AppCompatActivity() {
     val mainViewModel : MainViewModel by viewModels()
@@ -85,6 +78,7 @@ class MainActivity : AppCompatActivity() {
         //카메라 버튼 클릭
         binding.mainUploadImg.setOnClickListener {
             //카메라 호출 메소드
+
             openCamera()
         }
     }
@@ -111,6 +105,31 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return true
+    }
+
+    //사진찍기 or 앨범에서 가져오기 선택 다이얼로그
+    private fun photoDialogRadio() {
+        val PhotoModels = arrayOf<CharSequence>("갤러리에서 가져오기", "카메라로 촬영 후 가져오기", "기본사진으로 하기")
+        val alt_bld: AlertDialog.Builder = AlertDialog.Builder(this)
+        //alt_bld.setIcon(R.drawable.icon);
+        alt_bld.setTitle("프로필사진 설정")
+        alt_bld.setSingleChoiceItems(PhotoModels, -1,
+            DialogInterface.OnClickListener { dialog, item ->
+                // Toast.makeText(ProfileActivity.this, PhotoModels[item] + "가 선택되었습니다.", Toast.LENGTH_SHORT).show();
+                if (item == 0) { //갤러리
+                    val intent = Intent()
+                    intent.type = "image/*"
+                    intent.action = Intent.ACTION_GET_CONTENT
+//                    startActivityForResult(intent, PICK_IMAGE)
+                } else if (item == 1) { //카메라찍은 사진가져오기
+//                    takePictureFromCameraIntent()
+                } else { //기본화면으로하기
+//                    mPhotoImageVIew.setImageResource(R.drawable.ic_add_a_photo_black_24dp)
+//                    img = null
+                }
+            })
+        val alert: AlertDialog = alt_bld.create()
+        alert.show()
     }
 
     //checkPermission() 에서 ActivityCompat.requestPermissions 을 호출한 다음 사용자가 권한 허용여부를 선택하면 해당 메소드로 값이 전달 됩니다.
